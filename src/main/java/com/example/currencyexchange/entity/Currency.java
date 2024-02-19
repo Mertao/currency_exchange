@@ -6,72 +6,27 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "currencies")
-public class Currency {
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+@Data public class Currency {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
 	private int id;
 	
-	@Column(name = "code")
+	@Column(name = "code", nullable = false)
 	private String code;
 	
-	@Column(name = "full_name")
+	@Column(name = "full_name", nullable = false)
 	private String fullName;
 	
-	@Column(name = "sign")
+	@Column(name = "sign", nullable = false)
 	private String sign;
-	
-	public Currency() {}
-
-	public Currency(String code, String fullName, String sign) {
-		this.code = code;
-		this.fullName = fullName;
-		this.sign = sign;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public String getCode() {
-		return code;
-	}
-
-	public void setCode(String code) {
-		this.code = code;
-	}
-
-	public String getFullName() {
-		return fullName;
-	}
-
-	public void setFullName(String fullName) {
-		this.fullName = fullName;
-	}
-
-	public String getSign() {
-		return sign;
-	}
-
-	public void setSign(String sign) {
-		this.sign = sign;
-	}
-
-	@Override
-	public String toString() {
-		return "Currency [id=" + id + ", code=" + code + ", fullName=" + fullName + ", sign=" + sign + "]";
-	}
-	
-	
-	
 }

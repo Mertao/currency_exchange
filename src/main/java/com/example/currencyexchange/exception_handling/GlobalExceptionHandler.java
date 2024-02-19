@@ -17,7 +17,7 @@ import com.example.currencyexchange.exceptions.ExchangeRateAlreadyExistsExceptio
 import com.example.currencyexchange.exceptions.NotFoundException;
 
 @ControllerAdvice
-public class CurrencyGlobalExceptionHandler {
+public class GlobalExceptionHandler {
 	@ExceptionHandler(CurrencyAlreadyExistsException.class)
 	public ResponseEntity<ExceptionInfo> handleException(CurrencyAlreadyExistsException exception) {
 		ExceptionInfo info = new ExceptionInfo();

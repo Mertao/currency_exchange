@@ -1,17 +1,18 @@
 package com.example.currencyexchange.service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.currencyexchange.dao.CurrencyRepository;
+import com.example.currencyexchange.dto.CurrencyDTO;
+import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.entity.Currency;
 import com.example.currencyexchange.exceptions.CurrencyAlreadyExistsException;
 import com.example.currencyexchange.exceptions.RequestException;
-import com.example.currencyexchange.util.CurrencyUtil;
-import com.example.currencyexchange.util.Validation;
+import com.example.currencyexchange.validation.Validation;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService{
@@ -20,32 +21,27 @@ public class CurrencyServiceImpl implements CurrencyService{
 	private CurrencyRepository currencyRepository;
 	
 	@Override
-	public Optional<List<Currency>> getCurrencyList() {
-		List<Currency> currencyList = currencyRepository.findAll();
-		return Optional.ofNullable(currencyList);
+	public List<CurrencyDTO> getCurrencyList() {
+		return currencyRepository.findAll().stream().map(CurrencyDTO::toDTO).collect(Collectors.toList());
 	}
 	
 	@Override
-	public Optional<Currency> getCurrencyByCode(String code) {
-		if (!Validation.currencyCodeValidation(code)) {
-			throw new RequestException("The currency code must consist of 3 characters and must not be empty");
-		}
+	public CurrencyDTO getCurrencyByCode(String code) {
+		Validation.currencyCodeValidation(code);
 		Currency currency = currencyRepository.findByCode(code.toUpperCase());
-		
-		return Optional.ofNullable(currency);
+		if (currency == null) {
+			throw new RequestException("Currency with code " + code.toUpperCase() + " not exists in db.");
+		}
+		return CurrencyDTO.toDTO(currency);
 	}
 	
 	@Override
-	public Optional<Currency> saveCurrency(Currency currency) {
-		if (!CurrencyUtil.CheckCurrencyFields(currency)) {
-			throw new RequestException("Fields cannot be empty");
+	public CurrencyDTO saveCurrency(CurrencyRequestDTO currencyRequestDTO) {
+		Validation.currencyFieldsValidation(CurrencyDTO.toDTO(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));	
+		Currency existingCurrency = currencyRepository.findByCode(currencyRequestDTO.getCode());
+		if (existingCurrency != null) {
+			throw new CurrencyAlreadyExistsException("Currency with code " + currencyRequestDTO.getCode() + " already exists in db.");
 		}
-		Optional<Currency> existingCurrency = getCurrencyByCode(currency.getCode());
-		if (existingCurrency.isPresent()) {
-			throw new CurrencyAlreadyExistsException("Currency with code " + currency.getCode() + " already exists in db.");
-		}
-		
-		Currency savedCurrency = currencyRepository.save(currency);
-		return Optional.ofNullable(savedCurrency);
+		return CurrencyDTO.toDTO(currencyRepository.save(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));
 	}
 }

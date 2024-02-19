@@ -10,71 +10,29 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "exchange_rates")
-public class ExchangeRate {
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Data public class ExchangeRate {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
 	private int id;
 	
 	@ManyToOne
-	@JoinColumn(name = "base_currency_id", referencedColumnName = "id")
+	@JoinColumn(name = "base_currency_id", referencedColumnName = "id", nullable = false)
 	private Currency baseCurrency;
 	
 	@ManyToOne
-	@JoinColumn(name = "target_currency_id", referencedColumnName = "id")
+	@JoinColumn(name = "target_currency_id", referencedColumnName = "id", nullable = false)
 	private Currency targetCurrency;
 	
-	@Column(name = "rate")
+	@Column(name = "rate", nullable = false)
 	private BigDecimal rate;
-	
-	public ExchangeRate() {}
-
-	public ExchangeRate(Currency baseCurrency, Currency targetCurrency, BigDecimal rate) {
-		this.baseCurrency = baseCurrency;
-		this.targetCurrency = targetCurrency;
-		this.rate = rate;
-	}
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	public Currency getBaseCurrency() {
-		return baseCurrency;
-	}
-
-	public void setBaseCurrency(Currency baseCurrency) {
-		this.baseCurrency = baseCurrency;
-	}
-
-	public Currency getTargetCurrency() {
-		return targetCurrency;
-	}
-
-	public void setTargetCurrency(Currency targetCurrency) {
-		this.targetCurrency = targetCurrency;
-	}
-
-	public BigDecimal getRate() {
-		return rate;
-	}
-
-	public void setRate(BigDecimal rate) {
-		this.rate = rate;
-	}
-
-	@Override
-	public String toString() {
-		return "ExchangeRate [id=" + id + ", baseCurrencyId=" + baseCurrency + ", targetCurrencyId="
-				+ targetCurrency + ", rate=" + rate + "]";
-	}
-	
-	
 }

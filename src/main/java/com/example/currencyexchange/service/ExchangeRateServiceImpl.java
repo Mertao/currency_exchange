@@ -1,23 +1,21 @@
 package com.example.currencyexchange.service;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.currencyexchange.dao.ExchangeRateRepository;
-import com.example.currencyexchange.entity.Currency;
+import com.example.currencyexchange.dto.CurrencyDTO;
+import com.example.currencyexchange.dto.ExchangeRateDTO;
+import com.example.currencyexchange.dto.ExchangeRateRequestDTO;
+import com.example.currencyexchange.dto.ExchangeRateResponseDTO;
 import com.example.currencyexchange.entity.ExchangeRate;
-import com.example.currencyexchange.entity.ExchangeRateRequest;
-import com.example.currencyexchange.entity.ExchangeRateResponse;
-import com.example.currencyexchange.exceptions.RequestException;
 import com.example.currencyexchange.exceptions.ExchangeRateAlreadyExistsException;
 import com.example.currencyexchange.exceptions.NotFoundException;
-import com.example.currencyexchange.util.ExchangeRateUtil;
-import com.example.currencyexchange.util.Validation;
+import com.example.currencyexchange.validation.Validation;
 
 @Service
 public class ExchangeRateServiceImpl implements ExchangeRateService {
@@ -28,97 +26,64 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	CurrencyService currencyService;
 
 	@Override
-	public Optional<List<ExchangeRate>> getExchangeRateList() {
-		List<ExchangeRate> exchangeRateList = exchangeRateRepository.findAll();
-		return Optional.ofNullable(exchangeRateList);
+	public List<ExchangeRateDTO> getExchangeRateList() {
+		return exchangeRateRepository.findAll().stream().map(ExchangeRateDTO::toDTO).collect(Collectors.toList());
 	}
 
 	@Override
-	public Optional<ExchangeRate> getExchangeRateByCodes(String codes) {
-		if (!Validation.exchangeRateCodesValidation(codes)) {
-			throw new RequestException("The codes are entered incorrectly or are empty");
-		}
-		String baseCurrencyCode = codes.substring(0, 3);
-		String targetCurrencyCode = codes.substring(3);
-		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode,
-				targetCurrencyCode);
-
-		return Optional.ofNullable(exchangeRate);
-	}
-
-	@Override
-	public Optional<ExchangeRate> saveExchangeRate(ExchangeRateRequest exchangeRateRequest) {
-		ExchangeRate exchangeRate = new ExchangeRate();
-		if (!ExchangeRateUtil.CheckExchangeRateRequest(exchangeRateRequest)) {
-			throw new RequestException("Fields cannot be empty");
-		}
-		Optional<Currency> baseCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getBaseCurrencyCode());
-		Optional<Currency> targetCurrency = currencyService
-				.getCurrencyByCode(exchangeRateRequest.getTargetCurrencyCode());
-
-		if (baseCurrency.isEmpty() || targetCurrency.isEmpty()) {
+	public ExchangeRateDTO getExchangeRateByCodes(String codes) {
+		Validation.exchangeRateCodesValidation(codes);
+		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(codes.substring(0, 3),
+				codes.substring(3));
+		if (exchangeRate == null) {
 			throw new NotFoundException("One or both currencies are missing from the database");
 		}
-		if (getExchangeRateByCodes(baseCurrency.get().getCode() + targetCurrency.get().getCode()).isPresent()) {
+		return ExchangeRateDTO.toDTO(exchangeRate);
+	}
+
+	@Override
+	public ExchangeRateDTO saveExchangeRate(ExchangeRateRequestDTO exchangeRateRequest) {
+		CurrencyDTO baseCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getBaseCurrencyCode());
+		CurrencyDTO targetCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getTargetCurrencyCode());
+		Validation.currencyRequestValidation(baseCurrency, targetCurrency);
+		if (exchangeRateRepository.findExchangeRateByCodes(baseCurrency.getCode(), targetCurrency.getCode()) != null) {
 			throw new ExchangeRateAlreadyExistsException("Exchange rate already exists in the database");
 		}
-		
-		exchangeRate.setBaseCurrency(baseCurrency.get());
-		exchangeRate.setTargetCurrency(targetCurrency.get());
-		exchangeRate.setRate(exchangeRateRequest.getRate());
-		return Optional.ofNullable(exchangeRateRepository.save(exchangeRate));
+		ExchangeRate exchangeRate = exchangeRateRepository.save(ExchangeRate.builder()
+				.baseCurrency(CurrencyDTO.fromDTO(baseCurrency))
+				.targetCurrency(CurrencyDTO.fromDTO(targetCurrency))
+				.rate(exchangeRateRequest.getRate())
+				.build());
+		return ExchangeRateDTO.toDTO(exchangeRate);
 	}
 
 	@Override
-	public Optional<ExchangeRate> updateExchangeRate(ExchangeRateRequest exchangeRateRequest, String codes) {
+	public ExchangeRateDTO updateExchangeRate(ExchangeRateRequestDTO exchangeRateRequest, String codes) {
 		BigDecimal rate = exchangeRateRequest.getRate();
-		if (rate == null) {
-			throw new RequestException("Fields cannot be empty");
-		}
-		Optional<ExchangeRate> exchangeRate = getExchangeRateByCodes(codes);
-		if (exchangeRate.isEmpty()) {
-			throw new NotFoundException("One or both currencies are missing from the database");
-		}
-		
-		if (rate.compareTo(BigDecimal.ZERO) <= 0) {
-			throw new RequestException("The exchange rate cannot be less than 0");
-		}
-		exchangeRate.get().setRate(rate);
-		return Optional.ofNullable(exchangeRateRepository.save(exchangeRate.get()));
+		Validation.rateValidation(rate);
+		ExchangeRate exchangeRate = ExchangeRateDTO.fromDTO(getExchangeRateByCodes(codes));
+		exchangeRate.setRate(rate);
+		return ExchangeRateDTO.toDTO(exchangeRateRepository.save(exchangeRate));
 	}
 
 	@Override
-	public Optional<ExchangeRateResponse> getAmountExchangeRate(String baseCurrencyCode, String targetCurrencyCode,
+	public ExchangeRateResponseDTO getAmountExchangeRate(String baseCurrencyCode, String targetCurrencyCode,
 			BigDecimal amount) {
-		ExchangeRateResponse exchangeRateResponse = new ExchangeRateResponse();
-		if (amount == null) {
-			throw new RequestException("Amount cannot be empty");
-		}
-		if (amount.compareTo(BigDecimal.ZERO) < 0) {
-			throw new RequestException("The amount cannot be less than 0");
-		}
-		Optional<ExchangeRate> exchangeRate = getExchangeRateByCodes(baseCurrencyCode + targetCurrencyCode);
-		if (exchangeRate.isEmpty()) {
-			exchangeRate = getExchangeRateByCodes(targetCurrencyCode + baseCurrencyCode);
-			if (exchangeRate.isEmpty()) {
-				List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCodes(baseCurrencyCode,
-						targetCurrencyCode);
-				if (exchangeRates == null || exchangeRates.size() < 2) {
-					throw new RequestException("One or both currencies are missing from the database");
-				}
-				if (!exchangeRates.get(0).getTargetCurrency().getCode().equals(baseCurrencyCode)) {
-					Collections.swap(exchangeRates, 0, 1);
-				}
-				ExchangeRateUtil.setExchangeRateResponse(exchangeRateResponse, exchangeRates.get(0),
-						exchangeRates.get(1), amount);
-			} else {
-			ExchangeRateUtil.setExchangeRateResponse(exchangeRateResponse, exchangeRate.get(), null, amount);
+		Validation.amountExchangeRateValidation(baseCurrencyCode, targetCurrencyCode, amount);
+		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode,
+				targetCurrencyCode);
+		if (exchangeRate == null) {
+			exchangeRate = exchangeRateRepository.findExchangeRateByCodes(targetCurrencyCode, baseCurrencyCode);
+			if (exchangeRate == null) {
+				return getAmountExchangeRateByUsd(baseCurrencyCode, targetCurrencyCode, amount);
 			}
-		} else {
-			ExchangeRateUtil.setExchangeRateResponse(exchangeRateResponse, exchangeRate.get(), null, amount);
 		}
-		
-		return Optional.of(exchangeRateResponse);
+		return ExchangeRateResponseDTO.setExchangeRateResponse(exchangeRate, baseCurrencyCode, amount);
 	}
 
+	private ExchangeRateResponseDTO getAmountExchangeRateByUsd(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+			List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCodes(baseCurrencyCode, targetCurrencyCode);
+			Validation.exchangeRatesValidation(exchangeRates);
+			return ExchangeRateResponseDTO.setExchangeRateResponse(exchangeRates, baseCurrencyCode, amount);
+	}
 }
