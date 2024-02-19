@@ -1,7 +1,6 @@
 package com.example.currencyexchange.dao;
 
 import java.util.List;
-import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -13,7 +12,7 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Inte
 	@Query("SELECT er FROM ExchangeRate er "
             + "JOIN er.baseCurrency bc "
             + "JOIN er.targetCurrency tc "
-            + "WHERE bc.code = :baseCurrencyCode AND tc.code = :targetCurrencyCode")
+            + "WHERE bc.code IN (:baseCurrencyCode, :targetCurrencyCode) AND tc.code IN (:baseCurrencyCode, :targetCurrencyCode)")
 	public ExchangeRate findExchangeRateByCodes(@Param("baseCurrencyCode") String baseCurrencyCode,
 			@Param("targetCurrencyCode") String targetCurrencyCode);
 	

@@ -73,10 +73,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode,
 				targetCurrencyCode);
 		if (exchangeRate == null) {
-			exchangeRate = exchangeRateRepository.findExchangeRateByCodes(targetCurrencyCode, baseCurrencyCode);
-			if (exchangeRate == null) {
-				return getAmountExchangeRateByUsd(baseCurrencyCode, targetCurrencyCode, amount);
-			}
+			return getAmountExchangeRateByUsd(baseCurrencyCode, targetCurrencyCode, amount);
 		}
 		return ExchangeRateResponseDTO.setExchangeRateResponse(exchangeRate, baseCurrencyCode, amount);
 	}
