@@ -1,9 +1,11 @@
 package com.example.currencyexchange.service;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.aspectj.apache.bcel.classfile.Code;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,10 +14,11 @@ import com.example.currencyexchange.dto.CurrencyDTO;
 import com.example.currencyexchange.dto.ExchangeRateDTO;
 import com.example.currencyexchange.dto.ExchangeRateRequestDTO;
 import com.example.currencyexchange.dto.ExchangeRateResponseDTO;
+import com.example.currencyexchange.entity.Currency;
 import com.example.currencyexchange.entity.ExchangeRate;
 import com.example.currencyexchange.exceptions.ExchangeRateAlreadyExistsException;
 import com.example.currencyexchange.exceptions.NotFoundException;
-import com.example.currencyexchange.validation.Validation;
+import com.example.currencyexchange.validation.Validator;
 
 @Service
 public class ExchangeRateServiceImpl implements ExchangeRateService {
@@ -24,6 +27,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
 	@Autowired
 	CurrencyService currencyService;
+	
+	private static final int CODE_LENGTH = 3;
 
 	@Override
 	public List<ExchangeRateDTO> getExchangeRateList() {
@@ -32,11 +37,15 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 
 	@Override
 	public ExchangeRateDTO getExchangeRateByCodes(String codes) {
-		Validation.exchangeRateCodesValidation(codes);
-		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(codes.substring(0, 3),
-				codes.substring(3));
+		Validator.exchangeRateCodes(codes);
+		String baseCurrencyCode = codes.substring(0, CODE_LENGTH);
+		String targetCurrencyCode = codes.substring(CODE_LENGTH);
+		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode, targetCurrencyCode);
 		if (exchangeRate == null) {
 			throw new NotFoundException("One or both currencies are missing from the database");
+		}
+		if (!ExchangeRateDTO.baseCurrencyRateRightPlace(exchangeRate, baseCurrencyCode)) {
+			exchangeRate = ExchangeRateDTO.swapCurrencyIfNotRightPlace(exchangeRate);
 		}
 		return ExchangeRateDTO.toDTO(exchangeRate);
 	}
@@ -44,11 +53,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	@Override
 	public ExchangeRateDTO saveExchangeRate(ExchangeRateRequestDTO exchangeRateRequest) {
 		CurrencyDTO baseCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getBaseCurrencyCode());
-		CurrencyDTO targetCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getTargetCurrencyCode());
-		Validation.currencyRequestValidation(baseCurrency, targetCurrency);
-		if (exchangeRateRepository.findExchangeRateByCodes(baseCurrency.getCode(), targetCurrency.getCode()) != null) {
-			throw new ExchangeRateAlreadyExistsException("Exchange rate already exists in the database");
-		}
+		CurrencyDTO targetCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.getTargetCurrencyCode());		
+		Validator.currencyRequest(baseCurrency, targetCurrency);
 		ExchangeRate exchangeRate = exchangeRateRepository.save(ExchangeRate.builder()
 				.baseCurrency(CurrencyDTO.fromDTO(baseCurrency))
 				.targetCurrency(CurrencyDTO.fromDTO(targetCurrency))
@@ -60,8 +66,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	@Override
 	public ExchangeRateDTO updateExchangeRate(ExchangeRateRequestDTO exchangeRateRequest, String codes) {
 		BigDecimal rate = exchangeRateRequest.getRate();
-		Validation.rateValidation(rate);
-		ExchangeRate exchangeRate = ExchangeRateDTO.fromDTO(getExchangeRateByCodes(codes));
+		String baseCurrencyCode = codes.substring(0, CODE_LENGTH);
+		String targetCurrencyCode = codes.substring(CODE_LENGTH);
+		Validator.rate(rate);
+		ExchangeRate exchangeRate = ExchangeRateDTO.fromDTO(getExchangeRateByCodes(baseCurrencyCode + targetCurrencyCode));
+		if (!ExchangeRateDTO.baseCurrencyRateRightPlace(exchangeRate, baseCurrencyCode)) {
+			exchangeRate = ExchangeRateDTO.swapCurrencyIfNotRightPlace(exchangeRate);
+		}
 		exchangeRate.setRate(rate);
 		return ExchangeRateDTO.toDTO(exchangeRateRepository.save(exchangeRate));
 	}
@@ -69,7 +80,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	@Override
 	public ExchangeRateResponseDTO getAmountExchangeRate(String baseCurrencyCode, String targetCurrencyCode,
 			BigDecimal amount) {
-		Validation.amountExchangeRateValidation(baseCurrencyCode, targetCurrencyCode, amount);
+		Validator.amountExchangeRate(baseCurrencyCode, targetCurrencyCode, amount);
 		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode,
 				targetCurrencyCode);
 		if (exchangeRate == null) {
@@ -79,8 +90,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	}
 
 	private ExchangeRateResponseDTO getAmountExchangeRateByUsd(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
-			List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCodes(baseCurrencyCode, targetCurrencyCode);
-			Validation.exchangeRatesValidation(exchangeRates);
-			return ExchangeRateResponseDTO.setExchangeRateResponse(exchangeRates, baseCurrencyCode, amount);
+			List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCurrencyCodes(Arrays.asList(baseCurrencyCode, targetCurrencyCode));
+			Validator.exchangeRates(exchangeRates);
+			return ExchangeRateResponseDTO.setExchangeRateResponseFromList(exchangeRates, baseCurrencyCode, amount);
 	}
 }

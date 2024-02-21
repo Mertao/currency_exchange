@@ -12,7 +12,7 @@ import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.entity.Currency;
 import com.example.currencyexchange.exceptions.CurrencyAlreadyExistsException;
 import com.example.currencyexchange.exceptions.RequestException;
-import com.example.currencyexchange.validation.Validation;
+import com.example.currencyexchange.validation.Validator;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService{
@@ -27,7 +27,7 @@ public class CurrencyServiceImpl implements CurrencyService{
 	
 	@Override
 	public CurrencyDTO getCurrencyByCode(String code) {
-		Validation.currencyCodeValidation(code);
+		Validator.currencyCode(code);
 		Currency currency = currencyRepository.findByCode(code.toUpperCase());
 		if (currency == null) {
 			throw new RequestException("Currency with code " + code.toUpperCase() + " not exists in db.");
@@ -37,11 +37,7 @@ public class CurrencyServiceImpl implements CurrencyService{
 	
 	@Override
 	public CurrencyDTO saveCurrency(CurrencyRequestDTO currencyRequestDTO) {
-		Validation.currencyFieldsValidation(CurrencyDTO.toDTO(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));	
-		Currency existingCurrency = currencyRepository.findByCode(currencyRequestDTO.getCode());
-		if (existingCurrency != null) {
-			throw new CurrencyAlreadyExistsException("Currency with code " + currencyRequestDTO.getCode() + " already exists in db.");
-		}
+		Validator.currencyFields(CurrencyDTO.toDTO(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));	
 		return CurrencyDTO.toDTO(currencyRepository.save(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));
 	}
 }

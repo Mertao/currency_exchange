@@ -4,6 +4,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -22,7 +23,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(CurrencyAlreadyExistsException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo(exception.getMessage());
-
 		return new ResponseEntity<>(info, HttpStatus.CONFLICT);
 	}
 
@@ -30,7 +30,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(RequestException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo(exception.getMessage());
-
 		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
 	}
 
@@ -38,7 +37,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(NotFoundException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo(exception.getMessage());
-
 		return new ResponseEntity<>(info, HttpStatus.NOT_FOUND);
 	}
 	
@@ -46,15 +44,13 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(DataAccessException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo(exception.getMessage());
-
 		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
 	}
 	
 	@ExceptionHandler(DataIntegrityViolationException.class)
 	public ResponseEntity<ExceptionInfo> handleException(DataIntegrityViolationException exception) {
 		ExceptionInfo info = new ExceptionInfo();
-		info.setInfo("The field cannot be null");
-
+		info.setInfo("Fields must be unique");
 		return new ResponseEntity<>(info, HttpStatus.CONFLICT);
 	}
 	
@@ -62,7 +58,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(ExchangeRateAlreadyExistsException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo(exception.getMessage());
-
 		return new ResponseEntity<>(info, HttpStatus.CONFLICT);
 	}
 
@@ -70,7 +65,6 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(RuntimeException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo("Internal Server Error");
-
 		return new ResponseEntity<>(info, HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 	
@@ -93,7 +87,13 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ExceptionInfo> handleException(MissingServletRequestParameterException exception) {
 		ExceptionInfo info = new ExceptionInfo();
 		info.setInfo("Required parameter is missing");
-
+		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
+	}
+	
+	@ExceptionHandler(HttpMessageNotReadableException.class)
+	public ResponseEntity<ExceptionInfo> handleException(HttpMessageNotReadableException exception) {
+		ExceptionInfo info = new ExceptionInfo();
+		info.setInfo("Invalid request");
 		return new ResponseEntity<>(info, HttpStatus.BAD_REQUEST);
 	}
 }

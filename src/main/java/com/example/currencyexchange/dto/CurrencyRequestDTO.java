@@ -26,7 +26,7 @@ import lombok.NoArgsConstructor;
 	public static Currency fromDTO(CurrencyRequestDTO currencyRequestDTO) {
 		return Currency.builder()
                 .fullName(currencyRequestDTO.getName())
-                .code(currencyRequestDTO.getCode())
+                .code(currencyRequestDTO.getCode().toUpperCase())
                 .sign(currencyRequestDTO.getSign())
                 .build();
 	}

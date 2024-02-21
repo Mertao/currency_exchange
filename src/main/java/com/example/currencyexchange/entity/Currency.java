@@ -21,7 +21,7 @@ import lombok.NoArgsConstructor;
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@Column(name = "code", nullable = false)
+	@Column(name = "code", nullable = false, unique = true)
 	private String code;
 	
 	@Column(name = "full_name", nullable = false)

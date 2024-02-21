@@ -55,7 +55,7 @@ public class Controller {
 		return new ResponseEntity<>(exchangeRateService.getExchangeRateByCodes(currencyCodes.toUpperCase()),
 				HttpStatus.OK);
 	}
-
+	
 	@PostMapping("/exchangeRate")
 	public ResponseEntity<ExchangeRateDTO> saveExchangeRate(
 			@RequestBody ExchangeRateRequestDTO ExchangeRateRequestDTO) {

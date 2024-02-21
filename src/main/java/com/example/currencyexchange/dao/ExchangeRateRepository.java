@@ -15,10 +15,11 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Inte
             + "WHERE bc.code IN (:baseCurrencyCode, :targetCurrencyCode) AND tc.code IN (:baseCurrencyCode, :targetCurrencyCode)")
 	public ExchangeRate findExchangeRateByCodes(@Param("baseCurrencyCode") String baseCurrencyCode,
 			@Param("targetCurrencyCode") String targetCurrencyCode);
-	
-	@Query("SELECT er FROM ExchangeRate er "
-			+ "JOIN er.baseCurrency bc "
-			+ "JOIN er.targetCurrency tc "
-			+ "WHERE bc.code = 'USD' AND (tc.code = :baseCurrencyCode OR tc.code = :targetCurrencyCode)")
-	public List<ExchangeRate> findUsdExchangeRateByCodes(@Param("baseCurrencyCode") String baseCurrencyCode, @Param("targetCurrencyCode") String TargetCurrencyCode);
+
+	@Query("SELECT er FROM ExchangeRate er " +
+		       "JOIN er.baseCurrency bc " +
+		       "JOIN er.targetCurrency tc " +
+		       "WHERE (bc.code = 'USD' AND tc.code IN :currencyCodes) " +
+		       "OR (bc.code IN :currencyCodes AND tc.code = 'USD')")
+	public List<ExchangeRate> findUsdExchangeRateByCurrencyCodes(@Param("currencyCodes") List<String> currencyCodes);
 }
