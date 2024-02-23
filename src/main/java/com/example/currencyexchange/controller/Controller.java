@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,8 +42,8 @@ public class Controller {
 	}
 
 	@PostMapping("/currency")
-	public ResponseEntity<CurrencyDTO> saveCurrency(@RequestBody CurrencyRequestDTO currencyRequestDTO) {
-		return new ResponseEntity<>(currencyService.saveCurrency(currencyRequestDTO), HttpStatus.OK);
+	public ResponseEntity<CurrencyDTO> saveCurrency(@ModelAttribute CurrencyRequestDTO currencyRequestDTO) {
+		return new ResponseEntity<>(currencyService.saveCurrency(currencyRequestDTO), HttpStatus.CREATED);
 	}
 
 	@GetMapping("/exchangeRate")
@@ -58,13 +59,13 @@ public class Controller {
 	
 	@PostMapping("/exchangeRate")
 	public ResponseEntity<ExchangeRateDTO> saveExchangeRate(
-			@RequestBody ExchangeRateRequestDTO ExchangeRateRequestDTO) {
-		return new ResponseEntity<>(exchangeRateService.saveExchangeRate(ExchangeRateRequestDTO), HttpStatus.OK);
+			@ModelAttribute ExchangeRateRequestDTO ExchangeRateRequestDTO) {
+		return new ResponseEntity<>(exchangeRateService.saveExchangeRate(ExchangeRateRequestDTO), HttpStatus.CREATED);
 	}
 
 	@PatchMapping("/exchangeRate/{codes}")
 	public ResponseEntity<ExchangeRateDTO> updateExchangeRate(
-			@RequestBody ExchangeRateRequestDTO exchangeRateRequestDTO, @PathVariable("codes") String currencyCodes) {
+			@ModelAttribute ExchangeRateRequestDTO exchangeRateRequestDTO, @PathVariable("codes") String currencyCodes) {
 		return new ResponseEntity<>(
 				exchangeRateService.updateExchangeRate(exchangeRateRequestDTO, currencyCodes.toUpperCase()),
 				HttpStatus.OK);

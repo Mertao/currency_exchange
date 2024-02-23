@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.aspectj.apache.bcel.classfile.Code;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +13,7 @@ import com.example.currencyexchange.dto.CurrencyDTO;
 import com.example.currencyexchange.dto.ExchangeRateDTO;
 import com.example.currencyexchange.dto.ExchangeRateRequestDTO;
 import com.example.currencyexchange.dto.ExchangeRateResponseDTO;
-import com.example.currencyexchange.entity.Currency;
 import com.example.currencyexchange.entity.ExchangeRate;
-import com.example.currencyexchange.exceptions.ExchangeRateAlreadyExistsException;
 import com.example.currencyexchange.exceptions.NotFoundException;
 import com.example.currencyexchange.validation.Validator;
 
@@ -90,8 +87,8 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 	}
 
 	private ExchangeRateResponseDTO getAmountExchangeRateByUsd(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
-			List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCurrencyCodes(Arrays.asList(baseCurrencyCode, targetCurrencyCode));
-			Validator.exchangeRates(exchangeRates);
-			return ExchangeRateResponseDTO.setExchangeRateResponseFromList(exchangeRates, baseCurrencyCode, amount);
+		List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCurrencyCodes(Arrays.asList(baseCurrencyCode, targetCurrencyCode));
+		Validator.exchangeRates(exchangeRates);
+		return ExchangeRateResponseDTO.setExchangeRateResponseFromList(exchangeRates, baseCurrencyCode, amount);
 	}
 }

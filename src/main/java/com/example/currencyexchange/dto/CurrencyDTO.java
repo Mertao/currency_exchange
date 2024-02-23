@@ -13,14 +13,14 @@ import lombok.NoArgsConstructor;
 @Data public class CurrencyDTO {
 	private int id;
 	private String code;
-	private String fullName;
+	private String name;
 	private String sign;
 	
 	public static CurrencyDTO toDTO(Currency currency) {
 		return CurrencyDTO.builder()
 				.id(currency.getId())
 				.code(currency.getCode())
-				.fullName(currency.getFullName())
+				.name(currency.getFullName())
 				.sign(currency.getSign())
 				.build();
 	}
@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 		return Currency.builder()
 				.id(currencyDTO.getId())
 				.code(currencyDTO.getCode().toUpperCase())
-				.fullName(currencyDTO.getFullName())
+				.fullName(currencyDTO.getName())
 				.sign(currencyDTO.getSign())
 				.build();
 	}

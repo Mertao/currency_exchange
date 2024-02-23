@@ -10,13 +10,11 @@ import com.example.currencyexchange.dao.CurrencyRepository;
 import com.example.currencyexchange.dto.CurrencyDTO;
 import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.entity.Currency;
-import com.example.currencyexchange.exceptions.CurrencyAlreadyExistsException;
-import com.example.currencyexchange.exceptions.RequestException;
+import com.example.currencyexchange.exceptions.NotFoundException;
 import com.example.currencyexchange.validation.Validator;
 
 @Service
 public class CurrencyServiceImpl implements CurrencyService{
-	
 	@Autowired
 	private CurrencyRepository currencyRepository;
 	
@@ -30,14 +28,14 @@ public class CurrencyServiceImpl implements CurrencyService{
 		Validator.currencyCode(code);
 		Currency currency = currencyRepository.findByCode(code.toUpperCase());
 		if (currency == null) {
-			throw new RequestException("Currency with code " + code.toUpperCase() + " not exists in db.");
+			throw new NotFoundException("Currency with code " + code.toUpperCase() + " not exists in db.");
 		}
 		return CurrencyDTO.toDTO(currency);
 	}
 	
 	@Override
 	public CurrencyDTO saveCurrency(CurrencyRequestDTO currencyRequestDTO) {
-		Validator.currencyFields(CurrencyDTO.toDTO(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));	
+		Validator.currencyRequestFields(currencyRequestDTO);	
 		return CurrencyDTO.toDTO(currencyRepository.save(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));
 	}
 }
