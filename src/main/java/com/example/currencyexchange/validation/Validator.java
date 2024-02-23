@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import com.example.currencyexchange.dto.CurrencyDTO;
-import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.dto.ExchangeRateRequestDTO;
 import com.example.currencyexchange.entity.ExchangeRate;
 import com.example.currencyexchange.exceptions.NotFoundException;
@@ -14,9 +13,9 @@ import com.example.currencyexchange.exceptions.RequestException;
 public class Validator {
 	private static final int CODE_LENGTH = 3;
 
-	public static void currencyRequestFields(CurrencyRequestDTO currencyRequestDTO) {
-		currencyCode(currencyRequestDTO.getCode());
-		if (emptyField(currencyRequestDTO.getCode()) || emptyField(currencyRequestDTO.getName()) || emptyField(currencyRequestDTO.getSign())) {
+	public static void currencyRequestFields(CurrencyDTO currencyDTO) {
+		currencyCode(currencyDTO.getCode());
+		if (emptyField(currencyDTO.getCode()) || emptyField(currencyDTO.getName()) || emptyField(currencyDTO.getSign())) {
 			throw new RequestException("Fields cannot be empty");
 		}
 	}

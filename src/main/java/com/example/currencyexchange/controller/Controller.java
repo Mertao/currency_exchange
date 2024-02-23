@@ -11,12 +11,10 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.currencyexchange.dto.CurrencyDTO;
-import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.dto.ExchangeRateDTO;
 import com.example.currencyexchange.dto.ExchangeRateRequestDTO;
 import com.example.currencyexchange.dto.ExchangeRateResponseDTO;
@@ -42,7 +40,7 @@ public class Controller {
 	}
 
 	@PostMapping("/currency")
-	public ResponseEntity<CurrencyDTO> saveCurrency(@ModelAttribute CurrencyRequestDTO currencyRequestDTO) {
+	public ResponseEntity<CurrencyDTO> saveCurrency(@ModelAttribute CurrencyDTO currencyRequestDTO) {
 		return new ResponseEntity<>(currencyService.saveCurrency(currencyRequestDTO), HttpStatus.CREATED);
 	}
 

@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 
 import com.example.currencyexchange.dao.CurrencyRepository;
 import com.example.currencyexchange.dto.CurrencyDTO;
-import com.example.currencyexchange.dto.CurrencyRequestDTO;
 import com.example.currencyexchange.entity.Currency;
 import com.example.currencyexchange.exceptions.NotFoundException;
 import com.example.currencyexchange.validation.Validator;
@@ -34,8 +33,8 @@ public class CurrencyServiceImpl implements CurrencyService{
 	}
 	
 	@Override
-	public CurrencyDTO saveCurrency(CurrencyRequestDTO currencyRequestDTO) {
-		Validator.currencyRequestFields(currencyRequestDTO);	
-		return CurrencyDTO.toDTO(currencyRepository.save(CurrencyRequestDTO.fromDTO(currencyRequestDTO)));
+	public CurrencyDTO saveCurrency(CurrencyDTO currencyDTO) {
+		Validator.currencyRequestFields(currencyDTO);	
+		return CurrencyDTO.toDTO(currencyRepository.save(CurrencyDTO.fromDTO(currencyDTO)));
 	}
 }
