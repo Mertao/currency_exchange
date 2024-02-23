@@ -21,5 +21,5 @@ public interface ExchangeRateRepository extends JpaRepository<ExchangeRate, Inte
 		       "JOIN er.targetCurrency tc " +
 		       "WHERE (bc.code = 'USD' AND tc.code IN :currencyCodes) " +
 		       "OR (bc.code IN :currencyCodes AND tc.code = 'USD')")
-	public List<ExchangeRate> findUsdExchangeRateByCurrencyCodes(@Param("currencyCodes") List<String> currencyCodes);
+	public List<ExchangeRate> findCrossRateByUsd(@Param("currencyCodes") List<String> currencyCodes);
 }

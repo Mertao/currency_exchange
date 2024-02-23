@@ -81,13 +81,13 @@ public class ExchangeRateServiceImpl implements ExchangeRateService {
 		ExchangeRate exchangeRate = exchangeRateRepository.findExchangeRateByCodes(baseCurrencyCode,
 				targetCurrencyCode);
 		if (exchangeRate == null) {
-			return getAmountExchangeRateByUsd(baseCurrencyCode, targetCurrencyCode, amount);
+			return getCrossRateByUsd(baseCurrencyCode, targetCurrencyCode, amount);
 		}
 		return ExchangeRateResponseDTO.setExchangeRateResponse(exchangeRate, baseCurrencyCode, amount);
 	}
 
-	private ExchangeRateResponseDTO getAmountExchangeRateByUsd(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
-		List<ExchangeRate> exchangeRates = exchangeRateRepository.findUsdExchangeRateByCurrencyCodes(Arrays.asList(baseCurrencyCode, targetCurrencyCode));
+	private ExchangeRateResponseDTO getCrossRateByUsd(String baseCurrencyCode, String targetCurrencyCode, BigDecimal amount) {
+		List<ExchangeRate> exchangeRates = exchangeRateRepository.findCrossRateByUsd(Arrays.asList(baseCurrencyCode, targetCurrencyCode));
 		Validator.exchangeRates(exchangeRates);
 		return ExchangeRateResponseDTO.setExchangeRateResponseFromList(exchangeRates, baseCurrencyCode, amount);
 	}
